@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>宏文学生会 · 万圣节摊位租赁</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎃</text></svg>">
+<style>
+  :root{
+    --bg:#150a1e; --panel:#241232; --panel2:#2d1740;
+    --line:#3a2350; --ink:#f3e8ff; --muted:#b39cc9;
+    --accent:#ff8a3c; --accent2:#ffb26b; --green:#5fce8a; --red:#ff5c6c;
+    --violet:#9d6bff; --gold:#ffd166;
+    --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#3a2350 0%,transparent 60%),
+               radial-gradient(900px 500px at -10% 30%,#2d1740 0%,transparent 55%),var(--bg);
+    color:var(--ink); min-height:100vh; line-height:1.6;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:radial-gradient(circle at 20% 20%, rgba(157,107,255,.08) 0,transparent 30%),
+               radial-gradient(circle at 80% 80%, rgba(255,138,60,.06) 0,transparent 30%);
+  }
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 16px 80px}
+  /* ---------- 通用 ---------- */
+  .hidden{display:none!important}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-weight:600;
+    cursor:pointer;transition:.18s;line-height:1;min-height:44px;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#2a1200}
+  .btn-primary:hover{filter:brightness(1.08)}
+  .btn-violet{background:linear-gradient(135deg,var(--violet),#7a4ddb);color:#fff}
+  .btn-violet:hover{filter:brightness(1.08)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{background:var(--panel2)}
+  .btn-green{background:linear-gradient(135deg,#43c57a,var(--green));color:#06220f}
+  .btn-red{background:linear-gradient(135deg,#e84a5b,var(--red));color:#fff}
+  .btn-block{width:100%}
+  .btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+  .input,.select,.textarea{
+    width:100%;background:#1d0f2b;border:1px solid var(--line);border-radius:10px;
+    color:var(--ink);padding:12px 14px;font-size:16px;outline:none;transition:.15s;
+  }
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,138,60,.18)}
+  .label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.pending{background:rgba(255,209,102,.15);color:var(--gold)}
+  .pill.approved{background:rgba(95,206,138,.15);color:var(--green)}
+  .pill.rejected{background:rgba(255,92,108,.15);color:var(--red)}
+  .pill.free{background:rgba(157,107,255,.15);color:var(--violet)}
+  .pill.rented{background:rgba(255,138,60,.15);color:var(--accent)}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .grow{flex:1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .center{text-align:center}
+  .tag-line{font-size:13px;color:var(--muted)}
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+    background:var(--panel2);border:1px solid var(--accent);color:var(--ink);
+    padding:12px 22px;border-radius:12px;box-shadow:var(--shadow);z-index:999;
+    opacity:0;transition:.25s;pointer-events:none;font-size:14px;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{border-color:var(--red)}
+  .toast.ok{border-color:var(--green)}
+  /* ---------- 顶栏 ---------- */
+  header{
+    position:sticky;top:0;z-index:50;background:rgba(21,10,30,.85);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .bar{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px}
+  .logo{font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;letter-spacing:.5px}
+  .logo span{font-size:20px}
+  .logo .sub{font-size:11px;color:var(--accent);font-weight:600;letter-spacing:1px}
+  .nav{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+  .nav button{background:transparent;border:none;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;min-height:40px}
+  .nav button:hover{color:var(--ink);background:var(--panel2)}
+  .nav button.active{color:var(--ink);background:var(--panel2);box-shadow:inset 0 -2px 0 var(--accent)}
+  .user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .user-chip b{color:var(--ink)}
+  /* ---------- 登录 ---------- */
+  .auth-wrap{max-width:420px;margin:60px auto 0}
+  .auth-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:32px;box-shadow:var(--shadow)}
+  .auth-head{text-align:center;margin-bottom:22px}
+  .auth-head .pump{font-size:40px;line-height:1}
+  .auth-head h1{font-size:22px;margin-top:8px}
+  .auth-head p{color:var(--muted);font-size:13px;margin-top:4px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#1d0f2b;border-radius:10px;padding:4px;margin-bottom:20px}
+  .tabs button{border:none;background:transparent;color:var(--muted);padding:10px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;min-height:44px}
+  .tabs button.active{background:var(--panel2);color:var(--ink)}
+  .auth-hint{margin-top:18px;padding:12px 14px;background:#1d0f2b;border-radius:10px;font-size:12px;color:var(--muted);line-height:1.7}
+  .auth-hint b{color:var(--accent)}
+  /* ---------- 选座 ---------- */
+  .hero{text-align:center;padding:36px 0 10px}
+  .hero .eyebrow{font-size:12px;letter-spacing:3px;color:var(--accent);font-weight:600}
+  .hero h1{font-size:32px;margin:8px 0 6px}
+  .hero p{color:var(--muted);max-width:560px;margin:0 auto}
+  .legend{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin:18px 0;font-size:13px;color:var(--muted)}
+  .legend .dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .map-shell{margin:12px 0 26px}
+  .door-tag{text-align:center;font-size:12px;color:var(--accent);font-weight:600;letter-spacing:1px;margin-bottom:10px}
+  .door-tag::before,.door-tag::after{content:"—";margin:0 8px;color:var(--line)}
+  .map{
+    display:grid;grid-template-rows:auto auto auto;gap:14px;align-items:stretch;
+    background:#1d0f2b;border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+  }
+  .row-side{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-content:start}
+  .side-label{grid-column:1/-1;text-align:center;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .aisle-h{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;
+    background:rgba(157,107,255,.06);border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+    padding:10px 4px;
+  }
+  .aisle-h .a-side{font-size:12px;color:var(--accent);font-weight:600;text-align:center}
+  .aisle-h .a-body{display:flex;align-items:center;gap:10px}
+  .aisle-h .a-t{font-size:11px;color:var(--muted);letter-spacing:2px}
+  .aisle-h .a-line{flex:1;height:1px;background:var(--line)}
+  .seat{
+    border:1px solid var(--line);border-radius:10px;padding:12px 8px;text-align:center;
+    background:var(--panel2);cursor:pointer;transition:.15s;position:relative;min-height:64px;
+    display:flex;flex-direction:column;justify-content:center;gap:3px;
+  }
+  .seat:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .seat .id{font-weight:700;font-size:15px}
+  .seat .info{font-size:11px;color:var(--muted)}
+  .seat .price{font-size:12px;color:var(--gold);font-weight:600}
+  .seat.free{cursor:pointer}
+  .seat.applying{background:rgba(255,209,102,.1);border-color:var(--gold)}
+  .seat.rented{background:rgba(255,138,60,.08);border-color:var(--accent);cursor:not-allowed;opacity:.7}
+  .seat.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,138,60,.25);background:rgba(255,138,60,.1)}
+  .seat .badge{position:absolute;top:6px;right:6px;font-size:10px}
+  .seat .wechat{font-size:10px;color:var(--muted)}
+  /* ---------- 步骤条 ---------- */
+  .steps{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap}
+  .step{flex:1;min-width:150px;text-align:center;padding:10px;border-radius:10px;background:#1d0f2b;border:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .step .n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--panel2);color:var(--ink);align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-right:6px}
+  .step.on{border-color:var(--accent);color:var(--ink)}
+  .step.on .n{background:var(--accent);color:#2a1200}
+  .step.done{border-color:var(--green);color:var(--green)}
+  .step.done .n{background:var(--green);color:#06220f}
+  /* ---------- 表格 ---------- */
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  td.word-break{word-break:break-word}
+  .table-scroll{overflow-x:auto;border-radius:10px;border:1px solid var(--line)}
+  .table-scroll table{min-width:640px}
+  /* ---------- 统计卡 ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-align:center}
+  .stat .num{font-size:28px;font-weight:800;line-height:1.2}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+  .stat .num.gold{color:var(--gold)} .stat .num.green{color:var(--green)}
+  .stat .num.red{color:var(--red)} .stat .num.violet{color:var(--violet)}
+  /* ---------- 响应式 ---------- */
+  @media (max-width:640px){
+    .hero h1{font-size:26px}
+    .grid2{grid-template-columns:1fr}
+    .field-row{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .map{grid-template-rows:auto auto auto;gap:10px}
+    .aisle-h{grid-template-columns:1fr auto 1fr;gap:8px;padding:8px 2px}
+    .aisle-h .a-side{font-size:11px}
+    .row-side{grid-template-columns:repeat(4,1fr);gap:8px}
+    .seat{min-height:58px;padding:8px 4px}
+    .auth-wrap{margin-top:28px}
+    .bar{flex-wrap:wrap}
+    .nav{order:3;width:100%}
+  }
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- ===== 视图：登录/注册 ===== -->
+<section id="view-auth" class="wrap">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="pump">🎃</div>
+        <h1>万圣节摊位租赁</h1>
+        <p>宏文学生会 · 2026 万圣节集市</p>
+      </div>
+      <div class="tabs">
+        <button id="tab-login" class="active" onclick="switchAuth('login')">登录</button>
+        <button id="tab-register" onclick="switchAuth('register')">注册</button>
+      </div>
+      <div id="auth-form-login">
+        <label class="label">账号</label>
+        <input id="login-user" class="input" placeholder="用户名" autocomplete="username">
+        <label class="label">密码</label>
+        <input id="login-pass" class="input" type="password" placeholder="密码" autocomplete="current-password">
+        <button class="btn btn-primary btn-block" style="margin-top:22px" onclick="doLogin()">登录</button>
+      </div>
+      <div id="auth-form-register" class="hidden">
+        <label class="label">用户名</label>
+        <input id="reg-user" class="input" placeholder="设置用户名">
+        <label class="label">密码</label>
+        <input id="reg-pass" class="input" type="password" placeholder="设置密码">
+        <div class="field-row">
+          <div>
+            <label class="label">姓名</label>
+            <input id="reg-name" class="input" placeholder="真实姓名">
+          </div>
+          <div>
+            <label class="label">微信号</label>
+            <input id="reg-wechat" class="input" placeholder="微信号">
+          </div>
+        </div>
+        <button class="btn btn-violet btn-block" style="margin-top:22px" onclick="doRegister()">注册账号</button>
+      </div>
+      <div class="auth-hint">
+        <b>管理员入口：</b>账号 <b>admin</b>，密码 <b>halloween</b>（默认，可在系统设置修改）
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 用户端主框架 ===== -->
+<section id="view-app" class="wrap hidden">
+  <header style="position:static;border:none;background:transparent;backdrop-filter:none">
+    <div class="bar" style="padding-left:0;padding-right:0">
+      <div class="logo"><span>🎃</span><div>万圣节集市<small style="display:block;font-weight:400;font-size:11px;color:var(--muted)">宏文学生会</small></div></div>
+      <div class="nav" id="nav-user">
+        <button id="nav-map" class="active" onclick="goto('map')">选座地图</button>
+        <button id="nav-mine" onclick="goto('mine')">我的申请</button>
+      </div>
+      <div class="user-chip"><span id="chip-user">👤 <b>游客</b></span><button class="btn btn-ghost" style="min-height:36px;padding:8px 14px" onclick="doLogout()">退出</button></div>
+    </div>
+  </header>
+
+  <!-- 选座地图 -->
+  <div id="page-map">
+    <div class="hero">
+      <div class="eyebrow">HALLOWEEN MARKET</div>
+      <h1>选择你的摊位</h1>
+      <p>摊位按小时出租，请选择时段与摊位，填写申请后扫码付款等待审批。</p>
+      <div class="legend">
+        <span><span class="dot" style="background:#2d1740"></span>空闲</span>
+        <span><span class="dot" style="background:var(--gold)"></span>申请中</span>
+        <span><span class="dot" style="background:var(--accent)"></span>已出租</span>
+      </div>
+    </div>
+    <div class="card map-shell">
+      <div class="door-tag">教学楼大门侧</div>
+      <div class="map" id="seat-map"></div>
+    </div>
+    <div id="panel-booking" class="card hidden">
+      <div class="row" style="margin-bottom:4px"><h2 id="bk-title" style="font-size:20px">申请摊位</h2><span class="pill" id="bk-status"></span></div>
+      <div class="tag-line" id="bk-desc" style="margin-bottom:14px"></div>
+      <div class="steps">
+        <div class="step on" id="s1"><span class="n">1</span>填写申请</div>
+        <div class="step" id="s2"><span class="n">2</span>扫码付款</div>
+        <div class="step" id="s3"><span class="n">3</span>等待审批</div>
+      </div>
+      <!-- 步骤1：表单 -->
+      <form id="form-apply" onsubmit="return false">
+        <div class="field-row">
+          <div>
+            <label class="label">申请时段</label>
+            <select id="bk-slot" class="select" onchange="updateHours()">
+              <option value="14">14:00-18:00（¥24.9/小时）</option>
+              <option value="19">19:00-21:00（¥19.9/小时）</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">小时数</label>
+            <select id="bk-hours" class="select" onchange="calcPrice()">
+              <option value="1">1 小时</option>
+              <option value="2">2 小时</option>
+              <option value="3">3 小时</option>
+              <option value="4">4 小时</option>
+            </select>
+          </div>
+        </div>
+        <div class="price-line" style="margin-top:14px;padding:12px 14px;background:#1d0f2b;border-radius:10px;display:flex;justify-content:space-between;align-items:center">
+          <span class="small muted">预计租金</span>
+          <span id="bk-price" style="font-size:22px;font-weight:800;color:var(--gold)">¥24.9</span>
+        </div>
+        <label class="label">活动名称</label>
+        <input id="bk-activity" class="input" placeholder="例如：万圣节手作工坊">
+        <label class="label">活动内容简介</label>
+        <textarea id="bk-content" class="textarea" rows="2" placeholder="简单介绍你的摊位卖什么 / 玩什么"></textarea>
+        <label class="label">微信号（联系方式）</label>
+        <input id="bk-wechat" class="input" placeholder="你的微信号">
+        <label class="label">姓名 / 社团</label>
+        <input id="bk-name" class="input" placeholder="负责人姓名或社团名">
+        <button class="btn btn-primary btn-block" style="margin-top:20px" onclick="submitApply()">下一步：扫码付款</button>
+      </form>
+      <!-- 步骤2：付款 -->
+      <div id="panel-pay" class="hidden">
+        <div class="center" style="padding:8px 0 14px">
+          <div style="width:180px;height:180px;margin:0 auto;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+            <svg viewBox="0 0 160 160" width="180" height="180">
+              <rect x="8" y="8" width="144" height="144" fill="#fff" stroke="#222" stroke-width="3"/>
+              <g fill="none" stroke="#222" stroke-width="3">
+                <rect x="30" y="30" width="34" height="34"/><rect x="96" y="30" width="34" height="34"/>
+                <rect x="30" y="96" width="34" height="34"/><rect x="96" y="96" width="34" height="34"/>
+              </g>
+              <g fill="none" stroke="#222" stroke-width="2">
+                <path d="M30 70v20M30 96v0M40 40h10M90 40h40M40 120h10M120 120h10M70 30v10M70 120v10M30 70h8M122 70h8M30 90h8M122 90h8"/>
+              </g>
+              <text x="80" y="142" font-size="11" fill="#222" text-anchor="middle" font-weight="bold">收款码占位</text>
+            </svg>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--muted)">请使用微信扫一扫，向「宏文学生会」支付<br><span id="pay-amount" style="color:var(--gold);font-size:16px;font-weight:700"></span></div>
+        </div>
+        <label class="label">付款备注 / 交易单号</label>
+        <input id="bk-paynote" class="input" placeholder="填写微信支付单号或备注">
+        <div class="row" style="margin-top:20px;justify-content:space-between">
+          <button class="btn btn-ghost" onclick="stepBack()">上一步</button>
+          <button class="btn btn-green" onclick="finishApply()">我已付款，提交申请</button>
+        </div>
+      </div>
+      <!-- 步骤3：成功 -->
+      <div id="panel-done" class="hidden center" style="padding:30px 0">
+        <div style="font-size:52px">🎃</div>
+        <h2 style="margin:10px 0 6px">申请已提交</h2>
+        <p class="muted" id="done-text">你的申请正在等待学生会审批，可在「我的申请」查看结果。</p>
+        <button class="btn btn-violet" style="margin-top:18px" onclick="goto('mine')">查看我的申请</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的申请 -->
+  <div id="page-mine" class="hidden">
+    <div class="hero" style="text-align:left;padding:24px 0 14px">
+      <div class="eyebrow">MY APPLICATIONS</div>
+      <h1 style="font-size:24px">我的申请</h1>
+    </div>
+    <div class="card">
+      <div id="mine-empty" class="center muted" style="padding:30px 0">你还没有申请记录</div>
+      <div id="mine-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 管理员端主框架 ===== -->
+<section id="view-admin" class="wrap hidden">
+  <header style="position:static;border:none;background:transparent;backdrop-filter:none">
+    <div class="bar" style="padding-left:0;padding-right:0">
+      <div class="logo"><span>🕸️</span><div>管理台<small style="display:block;font-weight:400;font-size:11px;color:var(--muted)">万圣节摊位租赁</small></div></div>
+      <div class="nav" id="nav-admin">
+        <button id="nav-approve" class="active" onclick="gotoAdmin('approve')">审批台</button>
+        <button id="nav-astat" onclick="gotoAdmin('astat')">统计</button>
+        <button id="nav-aset" onclick="gotoAdmin('aset')">系统设置</button>
+      </div>
+      <div class="user-chip"><span>👑 <b>管理员</b></span><button class="btn btn-ghost" style="min-height:36px;padding:8px 14px" onclick="doLogout()">退出</button></div>
+    </div>
+  </header>
+
+  <!-- 审批台 -->
+  <div id="admin-approve">
+    <div class="hero" style="text-align:left;padding:24px 0 14px">
+      <div class="eyebrow">APPROVAL</div>
+      <h1 style="font-size:24px">审批台</h1>
+      <p class="muted small" style="margin-top:4px">批准后摊位变为「已出租」并锁定；驳回后摊位释放回「空闲」。</p>
+    </div>
+    <div class="filter-row row" style="margin-bottom:14px">
+      <span class="small muted">筛选：</span>
+      <button class="btn btn-ghost" style="min-height:36px;padding:6px 14px" onclick="setFilter('all',this)">全部</button>
+      <button class="btn btn-ghost" style="min-height:36px;padding:6px 14px" onclick="setFilter('待审批',this)">待审批</button>
+      <button class="btn btn-ghost" style="min-height:36px;padding:6px 14px" onclick="setFilter('审批通过',this)">已通过</button>
+      <button class="btn btn-ghost" style="min-height:36px;padding:6px 14px" onclick="setFilter('已驳回',this)">已驳回</button>
+    </div>
+    <div class="card table-scroll">
+      <table>
+        <colgroup><col style="width:9%"><col style="width:9%"><col style="width:13%"><col style="width:12%"><col style="width:13%"><col style="width:10%"><col style="width:14%"><col style="width:20%"></colgroup>
+        <thead>
+          <tr><th>摊位</th><th>时段</th><th>申请人</th><th>微信号</th><th>活动</th><th>金额</th><th>状态</th><th>操作</th></tr>
+        </thead>
+        <tbody id="approve-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div id="admin-astat" class="hidden">
+    <div class="hero" style="text-align:left;padding:24px 0 14px">
+      <div class="eyebrow">STATS</div>
+      <h1 style="font-size:24px">数据统计</h1>
+    </div>
+    <div class="stats" id="stat-cards"></div>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:12px">按审批状态</h3>
+        <div id="stat-status"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:12px">按时段</h3>
+        <div id="stat-slot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统设置 -->
+  <div id="admin-aset" class="hidden">
+    <div class="hero" style="text-align:left;padding:24px 0 14px">
+      <div class="eyebrow">SETTINGS</div>
+      <h1 style="font-size:24px">系统设置</h1>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:8px">修改管理密码</h3>
+        <label class="label">新密码</label>
+        <input id="set-pass" class="input" type="password" placeholder="输入新的管理员密码">
+        <button class="btn btn-violet btn-block" style="margin-top:16px" onclick="changeAdminPass()">保存新密码</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:8px">收款二维码</h3>
+        <div class="small muted" style="margin-bottom:12px">当前为占位二维码。如有学生会收款码图片，可将图片链接填入。</div>
+        <label class="label">收款码图片链接（可选）</label>
+        <input id="set-qr" class="input" placeholder="粘贴收款码图片 URL">
+        <button class="btn btn-violet btn-block" style="margin-top:16px" onclick="saveQr()">保存收款码</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;margin-bottom:8px">连接云端数据库</h3>
+        <div class="small muted" style="margin-bottom:12px">填入 Supabase 项目信息，即可让所有设备共享同一份数据（互联版）。未填时使用本地模式。</div>
+        <label class="label">Supabase Project URL</label>
+        <input id="set-sb-url" class="input" placeholder="https://xxxx.supabase.co">
+        <label class="label">Supabase anon key</label>
+        <input id="set-sb-key" class="input" placeholder="eyJhbGciOi...">
+        <button class="btn btn-violet btn-block" style="margin-top:16px" onclick="connectCloud()">连接云端</button>
+        <div id="cloud-status" class="small" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="window.__sbFailed=true"></script>
+<script>
+/* ================= 数据层（localStorage + Supabase 云端） ================= */
+const LS_KEY = 'hw_market_v2';
+const CLOUD_KEY = 'hw_cloud_cfg';
+const DAY_SLOTS = { '14': {label:'14:00-18:00', price:24.9}, '19': {label:'19:00-21:00', price:19.9} };
+let sbClient = null;
+
+// 读取云端配置（Supabase URL + anon key），有配置才返回客户端
+function getSb(){
+  let cfg = null;
+  try{ cfg = JSON.parse(localStorage.getItem(CLOUD_KEY)||'null'); }catch(e){ cfg=null; }
+  if(!cfg || !cfg.url || !cfg.key) return null;
+  if(window.__sbFailed || !window.supabase) return null; // SDK 未加载成功，回退本地模式
+  try{
+    if(!sbClient || sbClient.__url !== cfg.url){
+      sbClient = window.supabase.createClient(cfg.url, cfg.key);
+      sbClient.__url = cfg.url;
+    }
+    return sbClient;
+  }catch(e){ return null; }
+}
+// 数据归一化：确保结构是当前新版（8摊位 top/bottom、含 admin 用户）
+function normalize(d){
+  if(!d || typeof d!=='object') d = seed();
+  if(!d.settings) d.settings = {qr:'', adminPass:'halloween'};
+  if(!d.venues || d.venues.length!==8 || (d.venues[0] && d.venues[0].side!=='top' && d.venues[0].side!=='bottom')){
+    d.venues = seed().venues;
+  }
+  if(!d.users) d.users = [];
+  if(!d.users.find(u=>u.user==='admin')) d.users.unshift({user:'admin', pass:'halloween', name:'学生会', wechat:'', role:'admin'});
+  return d;
+}
+function seed(){
+  const base = {
+    users: [
+      {user:'admin', pass:'halloween', name:'学生会', wechat:'', role:'admin'}
+    ],
+    venues: [],
+    apps: [],
+    settings: { qr: '' , adminPass: 'halloween'}
+  };
+  // 8 个摊位，上 4 下 4（横向中间过道）
+  for(let i=1;i<=8;i++){
+    const side = i<=4 ? 'top' : 'bottom';
+    base.venues.push({ id:'S'+i, side, status:'free' }); // free / applying / rented
+  }
+  return base;
+}
+function loadDB(){
+  let d = localStorage.getItem(LS_KEY);
+  if(!d){ d = seed(); saveDB(d); return normalize(d); }
+  d = normalize(JSON.parse(d));
+  saveDB(d);
+  return d;
+}
+function saveDB(d){
+  localStorage.setItem(LS_KEY, JSON.stringify(normalize(d)));
+  cloudPush(d); // 若已连接云端，同时上传
+}
+// 推送整库到云端（单表 hw_state，id=1）
+async function cloudPush(d){
+  const sb = getSb();
+  if(!sb) return;
+  try{
+    await sb.from('hw_state').upsert({ id:1, data: normalize(d), updated_at: new Date().toISOString() });
+  }catch(e){ /* 云端未建表等错误静默，本地仍可用 */ }
+}
+// 从云端拉取整库
+async function cloudPull(){
+  const sb = getSb();
+  if(!sb) return null;
+  try{
+    const { data } = await sb.from('hw_state').select('data').eq('id',1).maybeSingle();
+    return data && data.data ? normalize(data.data) : null;
+  }catch(e){ return null; }
+}
+
+/* ================= 会话 ================= */
+let DB, SESSION;
+function init(){
+  DB = loadDB();
+  SESSION = JSON.parse(localStorage.getItem('hw_session')||'null');
+  render();
+  // 若已配置云端，异步拉取云端最新数据并刷新
+  if(getSb()){
+    cloudPull().then(cd=>{
+      if(cd && JSON.stringify(cd) !== JSON.stringify(DB)){
+        DB = cd; saveDB(DB); render();
+        if(!document.getElementById('view-auth').classList.contains('hidden')) return;
+      }
+    });
+  }
+}
+function render(){
+  if(SESSION){
+    if(SESSION.role==='admin'){ showAdmin(); }
+    else { showApp(); }
+  } else {
+    document.getElementById('view-auth').classList.remove('hidden');
+    document.getElementById('view-app').classList.add('hidden');
+    document.getElementById('view-admin').classList.add('hidden');
+  }
+}
+
+/* ================= 登录/注册 ================= */
+function switchAuth(mode){
+  document.getElementById('tab-login').classList.toggle('active', mode==='login');
+  document.getElementById('tab-register').classList.toggle('active', mode==='register');
+  document.getElementById('auth-form-login').classList.toggle('hidden', mode!=='login');
+  document.getElementById('auth-form-register').classList.toggle('hidden', mode!=='register');
+}
+function doLogin(){
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  if(!u||!p) return toast('请输入账号和密码','err');
+  const user = DB.users.find(x=>x.user===u && x.pass===p);
+  if(!user) return toast('账号或密码错误','err');
+  SESSION = { user: user.user, role: user.role, name: user.name };
+  localStorage.setItem('hw_session', JSON.stringify(SESSION));
+  toast('欢迎，'+user.name+'！','ok');
+  render();
+}
+function doRegister(){
+  const user = document.getElementById('reg-user').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const name = document.getElementById('reg-name').value.trim();
+  const wechat = document.getElementById('reg-wechat').value.trim();
+  if(!user||!pass) return toast('请填写用户名和密码','err');
+  if(pass.length<4) return toast('密码至少 4 位','err');
+  if(!name) return toast('请填写姓名','err');
+  if(!wechat) return toast('请填写微信号','err');
+  if(DB.users.find(x=>x.user===user)) return toast('该用户名已存在','err');
+  DB.users.push({user, pass, name, wechat, role:'user'});
+  saveDB(DB);
+  SESSION = { user, role:'user', name };
+  localStorage.setItem('hw_session', JSON.stringify(SESSION));
+  toast('注册成功！','ok');
+  render();
+}
+function doLogout(){
+  localStorage.removeItem('hw_session');
+  SESSION = null;
+  toast('已退出登录');
+  render();
+}
+
+/* ================= 用户端 ================= */
+function showApp(){
+  document.getElementById('view-auth').classList.add('hidden');
+  document.getElementById('view-admin').classList.add('hidden');
+  document.getElementById('view-app').classList.remove('hidden');
+  const chip = document.getElementById('chip-user');
+  chip.innerHTML = '👤 <b>'+SESSION.name+'</b>';
+  goto('map');
+}
+function goto(page){
+  document.getElementById('page-map').classList.toggle('hidden', page!=='map');
+  document.getElementById('page-mine').classList.toggle('hidden', page!=='mine');
+  document.getElementById('nav-map').classList.toggle('active', page==='map');
+  document.getElementById('nav-mine').classList.toggle('active', page==='mine');
+  if(page==='map') renderMap();
+  if(page==='mine') renderMine();
+}
+
+function renderMap(){
+  const map = document.getElementById('seat-map');
+  const top = DB.venues.filter(v=>v.side==='top');
+  const bottom = DB.venues.filter(v=>v.side==='bottom');
+  map.innerHTML =
+    '<div class="row-side"><div class="side-label">教学楼大门侧</div>'+
+      top.map(s=>seatHTML(s)).join('')+
+    '</div>'+
+    '<div class="aisle-h">'+
+      '<span class="a-side">教学楼大门侧</span>'+
+      '<div class="a-body"><span class="a-t">中央过道</span><div class="a-line"></div></div>'+
+      '<span class="a-side">1-1侧</span>'+
+    '</div>'+
+    '<div class="row-side"><div class="side-label">1-1侧</div>'+
+      bottom.map(s=>seatHTML(s)).join('')+
+    '</div>';
+}
+function seatHTML(s){
+  const cls = s.status==='free' ? 'free' : (s.status==='applying' ? 'applying' : 'rented');
+  const statusTxt = s.status==='free' ? '空闲' : (s.status==='applying' ? '申请中' : '已出租');
+  const badge = s.status==='free' ? '<span class="pill free">空闲</span>' :
+                (s.status==='applying' ? '<span class="pill pending">申请中</span>' : '<span class="pill rented">已出租</span>');
+  return '<div class="seat '+cls+'" onclick="selectSeat(\''+s.id+'\')">'+
+    '<span class="badge">'+badge+'</span>'+
+    '<div class="id">'+s.id+'</div>'+
+    '<div class="info">'+(s.side==='top'?'上排':'下排')+'</div>'+
+    '<div class="price">¥24.9/h · ¥19.9/h</div>'+
+  '</div>';
+}
+
+let SELECTED = null;
+function selectSeat(id){
+  const v = DB.venues.find(x=>x.id===id);
+  if(v.status==='rented') return toast('该摊位已出租','err');
+  if(v.status==='applying') return toast('该摊位正在审批中','err');
+  SELECTED = id;
+  renderMap();
+  // 选中态高亮
+  const all = document.querySelectorAll('.seat');
+  all.forEach(el=>el.classList.remove('selected'));
+  const target = Array.from(all).find(el=>el.textContent.includes(id));
+  if(target) target.classList.add('selected');
+  openBooking(v);
+}
+function openBooking(v){
+  const p = document.getElementById('panel-booking');
+  p.classList.remove('hidden');
+  document.getElementById('bk-title').textContent = '申请摊位 '+v.id;
+  const st = v.status==='free' ? '<span class="pill free">空闲</span>' : '<span class="pill pending">申请中</span>';
+  document.getElementById('bk-status').innerHTML = st;
+  document.getElementById('bk-desc').textContent = (v.side==='top'?'上排 · 教学楼大门侧':'下排 · 1-1侧')+' · 可按小时租用';
+  const me = DB.users.find(x=>x.user===SESSION.user);
+  document.getElementById('bk-name').value = me && me.name || '';
+  document.getElementById('bk-wechat').value = me && me.wechat || '';
+  stepTo(1);
+  calcPrice();
+}
+function calcPrice(){
+  const slot = document.getElementById('bk-slot').value;
+  const hours = parseInt(document.getElementById('bk-hours').value);
+  const p = DAY_SLOTS[slot].price * hours;
+  document.getElementById('bk-price').textContent = '¥'+p.toFixed(2);
+}
+function updateHours(){
+  const slot = document.getElementById('bk-slot').value;
+  const max = slot==='14' ? 4 : 2;   // 14:00-18:00 最多4小时；19:00-21:00 最多2小时
+  const sel = document.getElementById('bk-hours');
+  const cur = parseInt(sel.value);
+  sel.innerHTML = '';
+  for(let i=1;i<=max;i++){
+    const o = document.createElement('option');
+    o.value = i; o.textContent = i+' 小时';
+    if(i===Math.min(cur||1, max)) o.selected = true;
+    sel.appendChild(o);
+  }
+  calcPrice();
+}
+function stepTo(n){
+  document.getElementById('form-apply').classList.toggle('hidden', n!==1);
+  document.getElementById('panel-pay').classList.toggle('hidden', n!==2);
+  document.getElementById('panel-done').classList.toggle('hidden', n!==3);
+  for(let i=1;i<=3;i++){
+    const s=document.getElementById('s'+i);
+    s.classList.toggle('on', i===n);
+    s.classList.toggle('done', i<n);
+  }
+  if(n===2){
+    const slot = document.getElementById('bk-slot').value;
+    const hours = parseInt(document.getElementById('bk-hours').value);
+    const p = DAY_SLOTS[slot].price * hours;
+    document.getElementById('pay-amount').textContent = '¥'+p.toFixed(2);
+  }
+}
+function stepBack(){ stepTo(1); }
+function submitApply(){
+  const name = document.getElementById('bk-name').value.trim();
+  const wechat = document.getElementById('bk-wechat').value.trim();
+  const activity = document.getElementById('bk-activity').value.trim();
+  if(!name) return toast('请填写姓名 / 社团','err');
+  if(!wechat) return toast('请填写微信号','err');
+  if(!activity) return toast('请填写活动名称','err');
+  stepTo(2);
+}
+function finishApply(){
+  const v = DB.venues.find(x=>x.id===SELECTED);
+  if(!v || v.status!=='free') return toast('该摊位状态已变化','err');
+  const slot = document.getElementById('bk-slot').value;
+  const hours = parseInt(document.getElementById('bk-hours').value);
+  const price = DAY_SLOTS[slot].price * hours;
+  const app = {
+    id: 'A'+Date.now(),
+    venue: v.id,
+    slot, hours, price: Math.round(price*100)/100,
+    user: SESSION.user,
+    name: document.getElementById('bk-name').value.trim(),
+    wechat: document.getElementById('bk-wechat').value.trim(),
+    activity: document.getElementById('bk-activity').value.trim(),
+    content: document.getElementById('bk-content').value.trim(),
+    paynote: document.getElementById('bk-paynote').value.trim(),
+    status: '待审批',
+    reject: '',
+    time: new Date().toLocaleString('zh-CN',{hour12:false})
+  };
+  v.status = 'applying';
+  DB.apps.unshift(app);
+  saveDB(DB);
+  stepTo(3);
+  document.getElementById('done-text').textContent =
+    '你已申请 '+app.venue+'（'+DAY_SLOTS[slot].label+'，'+app.hours+'小时，¥'+app.price.toFixed(2)+'）\n\n 审批结果会在「我的申请」里显示。';
+  SELECTED = null;
+}
+function renderMine(){
+  const list = document.getElementById('mine-list');
+  const mine = DB.apps.filter(a=>a.user===SESSION.user);
+  const empty = document.getElementById('mine-empty');
+  empty.classList.toggle('hidden', mine.length>0);
+  list.innerHTML = mine.length ? '<div class="table-scroll"><table>'+
+    '<colgroup><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:16%"><col style="width:12%"><col style="width:14%"><col style="width:20%"></colgroup>'+
+    '<thead><tr><th>摊位</th><th>时段</th><th>活动</th><th>金额</th><th>提交时间</th><th>状态</th><th>备注</th></tr></thead><tbody>'+
+    mine.map(a=>{
+      const st = a.status==='待审批'?'<span class="pill pending">待审批</span>':(a.status==='审批通过'?'<span class="pill approved">已通过</span>':'<span class="pill rejected">已驳回</span>');
+      const note = a.status==='已驳回' ? (a.reject||'—') : (a.paynote||'—');
+      return '<tr><td>'+a.venue+'</td><td>'+DAY_SLOTS[a.slot].label+'<br><span class="small muted">'+a.hours+'h</span></td>'+
+        '<td class="word-break">'+a.activity+'</td><td>¥'+a.price.toFixed(2)+'</td><td class="small">'+a.time+'</td>'+
+        '<td>'+st+'</td><td class="small word-break">'+note+'</td></tr>';
+    }).join('')+'</tbody></table></div>' : '';
+}
+
+/* ================= 管理员端 ================= */
+function showAdmin(){
+  document.getElementById('view-auth').classList.add('hidden');
+  document.getElementById('view-app').classList.add('hidden');
+  document.getElementById('view-admin').classList.remove('hidden');
+  gotoAdmin('approve');
+}
+function gotoAdmin(page){
+  document.getElementById('admin-approve').classList.toggle('hidden', page!=='approve');
+  document.getElementById('admin-astat').classList.toggle('hidden', page!=='astat');
+  document.getElementById('admin-aset').classList.toggle('hidden', page!=='aset');
+  document.getElementById('nav-approve').classList.toggle('active', page==='approve');
+  document.getElementById('nav-astat').classList.toggle('active', page==='astat');
+  document.getElementById('nav-aset').classList.toggle('active', page==='aset');
+  if(page==='approve') renderApprove();
+  if(page==='astat') renderStats();
+  if(page==='aset') prefillCloudCfg();
+}
+function prefillCloudCfg(){
+  let cfg = null;
+  try{ cfg = JSON.parse(localStorage.getItem(CLOUD_KEY)||'null'); }catch(e){ cfg=null; }
+  if(cfg){
+    document.getElementById('set-sb-url').value = cfg.url || '';
+    document.getElementById('set-sb-key').value = cfg.key || '';
+    document.getElementById('cloud-status').innerHTML = '<span style="color:var(--green)">已连接云端数据库</span>';
+  }
+}
+let FILTER='all';
+function setFilter(f, el){
+  FILTER = f;
+  document.querySelectorAll('#admin-approve .filter-row .btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderApprove();
+}
+function renderApprove(){
+  let apps = DB.apps;
+  if(FILTER!=='all') apps = apps.filter(a=>a.status===FILTER);
+  const body = document.getElementById('approve-body');
+  if(!apps.length){ body.innerHTML = '<tr><td colspan="8" class="center muted" style="padding:24px">暂无申请</td></tr>'; return; }
+  body.innerHTML = apps.map(a=>{
+    const st = a.status==='待审批'?'<span class="pill pending">待审批</span>':(a.status==='审批通过'?'<span class="pill approved">已通过</span>':'<span class="pill rejected">已驳回</span>');
+    let op = '';
+    if(a.status==='待审批'){
+      op = '<div class="row" style="gap:6px"><button class="btn btn-green" style="min-height:34px;padding:6px 12px;font-size:13px" onclick="approve(\''+a.id+'\')">批准</button>'+
+           '<button class="btn btn-red" style="min-height:34px;padding:6px 12px;font-size:13px" onclick="reject(\''+a.id+'\')">驳回</button></div>';
+    } else op = '<span class="small muted">—</span>';
+    return '<tr><td><b>'+a.venue+'</b></td><td>'+DAY_SLOTS[a.slot].label+'<br><span class="small muted">'+a.hours+'h</span></td>'+
+      '<td class="word-break">'+a.name+'<br><span class="small muted">'+a.user+'</span></td>'+
+      '<td class="word-break">'+a.wechat+'</td>'+
+      '<td class="word-break">'+a.activity+'</td>'+
+      '<td>¥'+a.price.toFixed(2)+'</td>'+
+      '<td>'+st+'</td><td>'+op+'</td></tr>';
+  }).join('');
+}
+function approve(id){
+  const a = DB.apps.find(x=>x.id===id);
+  const v = DB.venues.find(x=>x.id===a.venue);
+  a.status = '审批通过';
+  v.status = 'rented';
+  saveDB(DB);
+  toast('已批准 '+a.venue+' 出租','ok');
+  renderApprove();
+}
+function reject(id){
+  const a = DB.apps.find(x=>x.id===id);
+  const v = DB.venues.find(x=>x.id===a.venue);
+  const reason = prompt('驳回原因（将展示给申请人）：','摊位已被占用');
+  if(reason===null) return;
+  a.status = '已驳回';
+  a.reject = reason;
+  v.status = 'free';
+  saveDB(DB);
+  toast('已驳回 '+a.venue);
+  renderApprove();
+}
+function renderStats(){
+  const apps = DB.apps;
+  const cards = document.getElementById('stat-cards');
+  const rented = DB.venues.filter(v=>v.status==='rented').length;
+  const free = DB.venues.filter(v=>v.status==='free').length;
+  const applying = DB.venues.filter(v=>v.status==='applying').length;
+  const pending = apps.filter(a=>a.status==='待审批').length;
+  cards.innerHTML =
+    statCard('8','总摊位','violet')+
+    statCard(free,'空闲','gold')+
+    statCard(applying,'申请中','')+
+    statCard(rented,'已出租','green');
+  // 按状态
+  const statuses = ['待审批','审批通过','已驳回'];
+  const ss = document.getElementById('stat-status');
+  ss.innerHTML = statuses.map(s=>{
+    const n = apps.filter(a=>a.status===s).length;
+    return '<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span>'+s+'</span><b>'+n+'</b></div>';
+  }).join('');
+  // 按时段
+  const slots = ['14','19'];
+  const sl = document.getElementById('stat-slot');
+  sl.innerHTML = slots.map(s=>{
+    const n = apps.filter(a=>a.slot===s).length;
+    return '<div class="row" style="justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span>'+DAY_SLOTS[s].label+'</span><b>'+n+'</b></div>';
+  }).join('');
+}
+function statCard(n, lbl, color){
+  return '<div class="stat"><div class="num '+color+'">'+n+'</div><div class="lbl">'+lbl+'</div></div>';
+}
+function changeAdminPass(){
+  const np = document.getElementById('set-pass').value;
+  if(!np) return toast('请输入新密码','err');
+  if(np.length<4) return toast('密码至少 4 位','err');
+  const admin = DB.users.find(u=>u.role==='admin');
+  admin.pass = np;
+  DB.settings.adminPass = np;
+  saveDB(DB);
+  document.getElementById('set-pass').value='';
+  toast('管理员密码已更新','ok');
+}
+function saveQr(){
+  const url = document.getElementById('set-qr').value.trim();
+  DB.settings.qr = url;
+  saveDB(DB);
+  toast('收款码已保存','ok');
+}
+function connectCloud(){
+  const url = document.getElementById('set-sb-url').value.trim();
+  const key = document.getElementById('set-sb-key').value.trim();
+  const st = document.getElementById('cloud-status');
+  if(!url || !key){
+    st.innerHTML = '<span style="color:var(--red)">请填写 Supabase Project URL 和 anon key</span>';
+    return;
+  }
+  localStorage.setItem(CLOUD_KEY, JSON.stringify({url, key}));
+  // 重新初始化客户端并立即做一次云端拉取，验证连通性
+  sbClient = null;
+  const sb = getSb();
+  if(!sb){
+    st.innerHTML = '<span style="color:var(--red)">连接失败：无法创建 Supabase 客户端，请检查 URL 是否正确</span>';
+    return;
+  }
+  cloudPull().then(cd=>{
+    if(cd){
+      // 云端有数据 → 用云端数据覆盖本地并刷新
+      DB = cd;
+      saveDB(DB);
+      st.innerHTML = '<span style="color:var(--green)">连接成功，已从云端同步数据。</span>';
+    } else {
+      // 云端暂无数据 → 上传本地数据
+      saveDB(DB);
+      st.innerHTML = '<span style="color:var(--green)">连接成功，云端暂无数据，已将当前数据上传。</span>';
+    }
+    toast('云端连接成功','ok');
+    render();
+  }).catch(()=>{
+    st.innerHTML = '<span style="color:var(--red)">连接失败：无法访问数据库。请确认已按说明建好 hw_state 表。</span>';
+  });
+}
+
+/* ================= 工具 ================= */
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show '+(type||'');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ================= 启动 ================= */
+init();
+</script>
+</body>
+</html>
